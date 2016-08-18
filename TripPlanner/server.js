@@ -24,9 +24,16 @@ router.get('/', function(req, res) {
 
 var mongoose   = require('mongoose');
 // mongoose.connect('mongodb://sudeepgaddam:nokiakyakiya911@ds161245.mlab.com:61245/sudeepdb'); // connect to our database
-mongoose.createConnection('mongodb://127.0.0.1/myapp'); // connect to our database
+mongoose.connect('mongodb://127.0.0.1/myapp'); // connect to our database
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function() {
+	console.log("connection successful");
+
+});
 
 var Bear     = require('./models/bear');
+var Message = require('./models/messages');
 
 // on routes that end in /bears
 // ----------------------------------------------------
@@ -72,8 +79,18 @@ io.sockets.on('connection', function(socket){
 			text: payload.text,
 			user: payload.user
 		}
+    var message = new Message();      // create a new instance of the Bear model
+    message.timeStamp = payload.timeStamp;  // set the bears name (comes from the request)
+    message.text = payload.text;
+    message.user = payload.user;
+    message.save(function(err) {
+      io.emit('messageAdded', newMessage);
 
-		io.emit('messageAdded', newMessage);
+    });
+
+
+
+
 	});
 
 
